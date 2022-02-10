@@ -1,6 +1,8 @@
-from flask import Flask, request, render_template, redirect, flash
+from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from surveys import satisfaction_survey as survey
+
+RESPONSES = 'responses'
 
 app = Flask(__name__)
 
@@ -9,7 +11,6 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-responses = list()
 
 @app.route('/')
 def start_survey_page():
@@ -18,16 +19,17 @@ def start_survey_page():
 
 
 
-@app.route('/begin', methods=["POST"])
-def begin_survey():
-    """ Redirect to first question """
+@app.route('/start', methods=["POST"])
+def reset_survey():
+    """ Empty response list and redirect to first question """
+    session[RESPONSES] = []
     return redirect('/question/0')
-
 
 
 @app.route('/question/<int:id>')
 def handle_question(id):
     """Show question page"""
+    responses = session.get(RESPONSES)
 
   # if no questions are completed, direct to homepage
     if responses is None:
@@ -44,6 +46,7 @@ def handle_question(id):
 
     current_question = survey.questions[id].question
     choices = survey.questions[id].choices
+   
 
     return render_template('question.html', choices=choices, current_question=current_question, survey=survey)
     
@@ -51,9 +54,12 @@ def handle_question(id):
 
 @app.route('/answer', methods=["POST"])
 def save_response():
-    """ Save response to list """
+    """ Save response to list and redirect to end or next question"""
     choice = request.form['answer']
+
+    responses = session[RESPONSES]
     responses.append(choice)
+    session[RESPONSES] = responses
 
   # if all questions answered end survey, else direct to next question
     if len(responses) == len(survey.questions):
