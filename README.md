@@ -1,2 +1,2 @@
-# Flask-tools-exercise
-This is a submission for Unit 19.4 Flask Session Exercise for Springboard SE Track
+# Flask-tools-session-exercise
+This is a submission for Units 19.3 and Flask Tools and Session Exercises for Springboard SE Track
